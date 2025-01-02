@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   Select,
   SelectContent,
@@ -13,14 +14,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { format } from "date-fns";
-
-type BookingFormData = {
-  name: string;
-  email: string;
-  phone: string;
-  guests: string;
-  time: string;
-};
+import { bookingService } from "@/services/bookingService";
+import type { BookingData } from "@/services/bookingService";
 
 const timeSlots = [
   "17:00",
@@ -34,6 +29,14 @@ const timeSlots = [
   "21:00",
 ];
 
+type BookingFormData = {
+  name: string;
+  email: string;
+  phone: string;
+  guests: string;
+  time: string;
+};
+
 export function BookingForm() {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const { toast } = useToast();
@@ -41,18 +44,55 @@ export function BookingForm() {
     register,
     handleSubmit,
     formState: { errors },
+    reset,
   } = useForm<BookingFormData>();
 
+  // Fetch existing bookings for the selected date
+  const { data: existingBookings } = useQuery({
+    queryKey: ['bookings', date],
+    queryFn: () => date ? bookingService.getBookings(date) : Promise.resolve([]),
+    enabled: !!date,
+  });
+
+  // Create booking mutation
+  const createBookingMutation = useMutation({
+    mutationFn: (data: BookingData) => bookingService.createBooking(data),
+    onSuccess: () => {
+      toast({
+        title: "Booking Confirmed!",
+        description: `Your table has been reserved for ${format(
+          date!,
+          "MMMM do, yyyy"
+        )}`,
+      });
+      reset();
+    },
+    onError: (error) => {
+      console.error('Booking error:', error);
+      toast({
+        title: "Booking Failed",
+        description: "Unable to complete your booking. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: BookingFormData) => {
-    console.log("Booking submitted:", { ...data, date });
-    toast({
-      title: "Booking Confirmed!",
-      description: `Your table has been reserved for ${format(
-        date!,
-        "MMMM do, yyyy"
-      )} at ${data.time}`,
+    if (!date) return;
+    
+    console.log("Submitting booking:", { ...data, date });
+    
+    createBookingMutation.mutate({
+      ...data,
+      date,
     });
   };
+
+  // Filter out already booked time slots
+  const availableTimeSlots = timeSlots.filter(slot => {
+    if (!existingBookings) return true;
+    return !existingBookings.some((booking: any) => booking.time === slot);
+  });
 
   return (
     <form
@@ -78,13 +118,16 @@ export function BookingForm() {
               <SelectValue placeholder="Select time" />
             </SelectTrigger>
             <SelectContent>
-              {timeSlots.map((time) => (
+              {availableTimeSlots.map((time) => (
                 <SelectItem key={time} value={time}>
                   {time}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
+          {errors.time && (
+            <span className="text-red-500 text-sm">Time is required</span>
+          )}
         </div>
 
         <div>
@@ -101,6 +144,9 @@ export function BookingForm() {
               ))}
             </SelectContent>
           </Select>
+          {errors.guests && (
+            <span className="text-red-500 text-sm">Number of guests is required</span>
+          )}
         </div>
 
         <div>
@@ -152,8 +198,9 @@ export function BookingForm() {
       <Button
         type="submit"
         className="w-full bg-restaurant-primary hover:bg-restaurant-primary/90"
+        disabled={createBookingMutation.isPending}
       >
-        Book Table
+        {createBookingMutation.isPending ? "Booking..." : "Book Table"}
       </Button>
     </form>
   );
