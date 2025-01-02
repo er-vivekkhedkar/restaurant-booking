@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "./ui/button";
+import { Link, useLocation } from "react-router-dom";
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -15,10 +17,10 @@ export function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: "Home", href: "#" },
-    { name: "Menu", href: "#" },
-    { name: "About", href: "#" },
-    { name: "Contact", href: "#" },
+    { name: "Home", href: "/" },
+    { name: "Menu", href: "/menu" },
+    { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ];
 
   return (
@@ -33,21 +35,23 @@ export function Navbar() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <span className="font-playfair text-2xl font-bold text-white">
+            <Link to="/" className="font-playfair text-2xl font-bold text-white">
               La Belle Cuisine
-            </span>
+            </Link>
           </div>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => (
-              <a
+              <Link
                 key={link.name}
-                href={link.href}
-                className="text-white/90 hover:text-white transition-colors duration-200"
+                to={link.href}
+                className={`text-white/90 hover:text-white transition-colors duration-200 ${
+                  location.pathname === link.href ? "text-white font-semibold" : ""
+                }`}
               >
                 {link.name}
-              </a>
+              </Link>
             ))}
             <Button
               className="bg-restaurant-primary hover:bg-restaurant-primary/90 text-white"
@@ -83,13 +87,16 @@ export function Navbar() {
           <div className="md:hidden bg-black/90 backdrop-blur-sm">
             <div className="px-2 pt-2 pb-3 space-y-1">
               {navLinks.map((link) => (
-                <a
+                <Link
                   key={link.name}
-                  href={link.href}
-                  className="block px-3 py-2 text-white/90 hover:text-white transition-colors duration-200"
+                  to={link.href}
+                  className={`block px-3 py-2 text-white/90 hover:text-white transition-colors duration-200 ${
+                    location.pathname === link.href ? "text-white font-semibold" : ""
+                  }`}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   {link.name}
-                </a>
+                </Link>
               ))}
               <Button
                 className="w-full mt-2 bg-restaurant-primary hover:bg-restaurant-primary/90 text-white"
