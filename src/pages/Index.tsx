@@ -1,12 +1,22 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { Hero } from "@/components/Hero";
+import { BookingForm } from "@/components/BookingForm";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-restaurant-cream">
+      <Hero />
+      
+      <section
+        id="booking-section"
+        className="py-16 px-4 md:px-8"
+      >
+        <div className="max-w-7xl mx-auto">
+          <h2 className="font-playfair text-4xl text-center text-restaurant-dark mb-12">
+            Reserve Your Table
+          </h2>
+          <BookingForm />
+        </div>
+      </section>
     </div>
   );
 };
