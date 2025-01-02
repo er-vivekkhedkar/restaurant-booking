@@ -1,9 +1,11 @@
 import { Hero } from "@/components/Hero";
 import { BookingForm } from "@/components/BookingForm";
+import { Navbar } from "@/components/Navbar";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-restaurant-cream">
+      <Navbar />
       <Hero />
       
       <section
